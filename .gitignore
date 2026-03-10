@@ -25,9 +25,50 @@ env/
 .DS_Store
 Thumbs.db
 
-# Project specific
-experiments/
+# Data & Datasets
+data/
+datasets/
+*.csv
+*.tsv
+*.parquet
+
+# Model weights & checkpoints
 *.pt
 *.pth
 *.ckpt
+*.safetensors
+*.h5
+*.hdf5
+*.onnx
+*.bin
+
+# Training outputs & logs
+outputs/
+experiments/
+training-runs/
+runs/
+wandb/
 *.log
+*.tfevents*
+
+# Images & media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.mp4
+*.avi
+
+# Numpy & data files
+*.npy
+*.npz
+*.pkl
+*.pickle
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
