@@ -74,7 +74,6 @@ class MLP(nn.Module):
             last_dim = hidden_dim
         layers.append(nn.Linear(last_dim, 1))
         self.net = nn.Sequential(*layers)
-        self.final_activation = nn.Sigmoid()
 
         self.reset_parameters()
 
@@ -87,7 +86,7 @@ class MLP(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.pe is not None:
             x = self.pe(x)
-        return self.final_activation(self.net(x))
+        return self.net(x)
 
 
 class SineLayer(nn.Module):
@@ -132,7 +131,6 @@ class SIREN(nn.Module):
             layers.append(SineLayer(hidden_dim, hidden_dim, omega_0=omega_0_hidden, is_first=False))
         self.sine_layers = nn.ModuleList(layers)
         self.final_linear = nn.Linear(hidden_dim, 1)
-        self.final_activation = nn.Sigmoid()
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
@@ -146,5 +144,4 @@ class SIREN(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer in self.sine_layers:
             x = layer(x)
-        x = self.final_linear(x)
-        return self.final_activation(x)
+        return self.final_linear(x)
