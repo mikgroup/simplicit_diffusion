@@ -79,7 +79,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--diffusion_weight", type=float, default=0.1)
     parser.add_argument("--diffusion_num_steps", type=int, default=10)
     parser.add_argument("--diffusion_sigma_min", type=float, default=0.002)
-    parser.add_argument("--diffusion_tmax", type=float, default=1.0)
+    parser.add_argument("--diffusion_tmax", type=float, default=80.0)
     parser.add_argument("--diffusion_tmin", type=float, default=0.0)
     parser.add_argument("--diffusion_rho", type=float, default=7.0)
     parser.add_argument("--diffusion_mode", type=str, default="sds", choices=["sds", "multistep"],
@@ -123,8 +123,12 @@ def sds_prior_loss(
     P_mean: float = -1.2,
     P_std: float = 1.2,
     sigma_data: float = 0.5,
-) -> torch.Tensor:
-    """Score Distillation Sampling loss (single EDM forward pass)."""
+) -> tuple[torch.Tensor, float]:
+    """Score Distillation Sampling loss (single EDM forward pass).
+
+    Returns (pseudo_loss, l2_gap) where l2_gap is the interpretable
+    L2 distance between the denoised output and the prediction.
+    """
     row = _pred_to_row(line_pred)  # (B, 1, 1, W)
     B = row.shape[0]
 
@@ -138,10 +142,11 @@ def sds_prior_loss(
     with torch.no_grad():
         denoised = diffusion_model(x_noisy, sigma.squeeze()).to(torch.float32)
 
-    # SDS gradient: backprop through (denoised - row_detached) * row
+    l2_gap = torch.nn.functional.mse_loss(denoised, row.detach()).item()
+
     grad = weight * (denoised - row.detach())
     loss = (grad * row).mean()
-    return loss
+    return loss, l2_gap
 
 
 def multistep_prior_loss(
@@ -333,11 +338,49 @@ def log_line_comparison_figure(
     writer.add_figure("lines/gt_vs_pred", fig, epoch, close=True)
 
 
+def evaluate_val_mse(
+    model: torch.nn.Module,
+    data: PeristalsisVideoData,
+    device: torch.device,
+) -> float:
+    """Compute MSE on held-out future frames (generalization metric).
+
+    Uses data.frames_future and data.phases_future.
+    Returns mean MSE over all future frames (in [-1, 1] space).
+    """
+    if data.num_future_frames == 0:
+        return float("nan")
+
+    model.eval()
+    total_mse = 0.0
+    phases_unit = data.phases_to_unit(data.phases_future)  # (T_future, 2)
+
+    with torch.no_grad():
+        for t in range(data.num_future_frames):
+            phase_feat = phases_unit[t]  # (2,)
+            phase_grid = phase_feat.view(1, 1, -1).expand(data.height, data.width, -1)
+            inputs = torch.cat([data.coords_unit, phase_grid], dim=-1)  # (H, W, 4)
+            inputs_flat = inputs.reshape(-1, 4).to(device)
+
+            pred = model(inputs_flat)  # (H*W, 1)
+            pred = pred.reshape(data.height, data.width, 1)
+
+            gt = data.frames_future[t] * 2.0 - 1.0  # [0, 1] -> [-1, 1]
+            total_mse += torch.nn.functional.mse_loss(pred, gt).item()
+
+    return total_mse / data.num_future_frames
+
+
 def main() -> None:
     args = parse_args()
     set_seed(args.seed)
 
     device = torch.device(args.device)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError(
+            "CUDA is required but not available. Use --device cpu only if you intend to run on CPU."
+        )
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
     log_dir = args.log_dir if args.log_dir is not None else args.output_dir / "tb"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -377,11 +420,14 @@ def main() -> None:
 
     mse_loss = torch.nn.MSELoss()
 
+    print(f"Dataset: {len(dataset)} samples, {len(loader)} batches/epoch (batch_size={args.batch_size})")
+
     for epoch in range(1, args.epochs + 1):
         model.train()
         epoch_loss = 0.0
         epoch_data = 0.0
         epoch_diff = 0.0
+        epoch_l2_gap = 0.0
         start_time = time.time()
 
         for inputs, targets, _, _ in loader:
@@ -392,9 +438,10 @@ def main() -> None:
             loss = data_loss
 
             diff_loss = torch.tensor(0.0, device=device)
+            batch_l2_gap = 0.0
             if diffusion_model is not None and args.diffusion_weight > 0.0:
                 if args.diffusion_mode == "sds":
-                    diff_loss = sds_prior_loss(
+                    diff_loss, batch_l2_gap = sds_prior_loss(
                         preds,
                         diffusion_model,
                         sigma_min=args.diffusion_sigma_min,
@@ -417,6 +464,7 @@ def main() -> None:
             epoch_loss += loss.item()
             epoch_data += data_loss.item()
             epoch_diff += diff_loss.item()
+            epoch_l2_gap += batch_l2_gap
 
         elapsed = time.time() - start_time
         num_batches = max(1, len(loader))
@@ -424,13 +472,18 @@ def main() -> None:
         writer.add_scalar("train/data_loss", epoch_data / num_batches, epoch)
         writer.add_scalar("train/diffusion_loss", epoch_diff / num_batches, epoch)
         writer.add_scalar("train/time_per_epoch_s", elapsed, epoch)
+        if epoch_l2_gap > 0:
+            writer.add_scalar("train/sds_l2_gap", epoch_l2_gap / num_batches, epoch)
 
         if epoch % args.log_every == 0 or epoch == 1 or epoch == args.epochs:
+            val_mse = evaluate_val_mse(model, data, device)
+            writer.add_scalar("val/mse", val_mse, epoch)
             print(
                 f"Epoch {epoch:04d} | "
                 f"loss={epoch_loss/num_batches:.6f} "
                 f"data={epoch_data/num_batches:.6f} "
                 f"diff={epoch_diff/num_batches:.6f} "
+                f"val_mse={val_mse:.6f} "
                 f"time={elapsed:.2f}s"
             )
 
