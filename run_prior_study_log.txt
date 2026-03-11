@@ -1,0 +1,62 @@
+./run_prior_study.sh
+=== Exp A: Baseline (no prior) ===
+/home/shoumik/simplicit_diffusion
+/home/shoumik/simplicit_diffusion/src
+Dataset: 3200 samples, 50 batches/epoch (batch_size=64)
+Epoch 0001 | loss=0.171900 data=0.171900 diff=0.000000 val_mse=0.087423 time=1.43s
+Epoch 0010 | loss=0.013948 data=0.013948 diff=0.000000 val_mse=0.019033 time=0.46s
+Epoch 0020 | loss=0.006717 data=0.006717 diff=0.000000 val_mse=0.013157 time=0.46s
+Epoch 0030 | loss=0.004193 data=0.004193 diff=0.000000 val_mse=0.011134 time=0.44s
+Epoch 0040 | loss=0.003285 data=0.003285 diff=0.000000 val_mse=0.010357 time=0.44s
+Epoch 0050 | loss=0.002565 data=0.002565 diff=0.000000 val_mse=0.010093 time=0.46s
+Epoch 0060 | loss=0.001747 data=0.001747 diff=0.000000 val_mse=0.009368 time=0.55s
+Epoch 0070 | loss=0.002113 data=0.002113 diff=0.000000 val_mse=0.009515 time=0.55s
+Epoch 0080 | loss=0.001906 data=0.001906 diff=0.000000 val_mse=0.009152 time=0.60s
+Epoch 0090 | loss=0.001630 data=0.001630 diff=0.000000 val_mse=0.009081 time=0.55s
+Epoch 0100 | loss=0.001320 data=0.001320 diff=0.000000 val_mse=0.008955 time=0.45s
+=== Exp B: Multistep prior, weight 0.01 ===
+/home/shoumik/simplicit_diffusion
+/home/shoumik/simplicit_diffusion/src
+Dataset: 3200 samples, 50 batches/epoch (batch_size=64)
+Epoch 0001 | loss=0.175903 data=0.171484 diff=0.441842 val_mse=0.086983 time=16.29s
+Epoch 0010 | loss=0.016988 data=0.014027 diff=0.296132 val_mse=0.019179 time=14.88s
+Epoch 0020 | loss=0.009693 data=0.006735 diff=0.295831 val_mse=0.013177 time=16.42s
+Epoch 0030 | loss=0.007124 data=0.004134 diff=0.298970 val_mse=0.011262 time=15.09s
+Epoch 0040 | loss=0.006272 data=0.003286 diff=0.298585 val_mse=0.010031 time=16.73s
+Epoch 0050 | loss=0.005462 data=0.002466 diff=0.299570 val_mse=0.009721 time=14.98s
+Epoch 0060 | loss=0.004756 data=0.001771 diff=0.298504 val_mse=0.009211 time=16.72s
+Epoch 0070 | loss=0.004909 data=0.001943 diff=0.296648 val_mse=0.009027 time=15.07s
+Epoch 0080 | loss=0.004479 data=0.001508 diff=0.297151 val_mse=0.009342 time=15.26s
+Epoch 0090 | loss=0.004543 data=0.001541 diff=0.300204 val_mse=0.008718 time=15.08s
+Epoch 0100 | loss=0.004441 data=0.001448 diff=0.299282 val_mse=0.008822 time=16.74s
+=== Exp C: Multistep prior, weight 0.03 ===
+/home/shoumik/simplicit_diffusion
+/home/shoumik/simplicit_diffusion/src
+Dataset: 3200 samples, 50 batches/epoch (batch_size=64)
+Epoch 0001 | loss=0.182949 data=0.169786 diff=0.438780 val_mse=0.086034 time=16.26s
+Epoch 0010 | loss=0.022933 data=0.014171 diff=0.292077 val_mse=0.019258 time=15.25s
+Epoch 0020 | loss=0.015569 data=0.006810 diff=0.291961 val_mse=0.013222 time=16.65s
+Epoch 0030 | loss=0.013213 data=0.004362 diff=0.295017 val_mse=0.011135 time=16.71s
+Epoch 0040 | loss=0.012139 data=0.003298 diff=0.294716 val_mse=0.010252 time=15.01s
+Epoch 0050 | loss=0.011365 data=0.002509 diff=0.295193 val_mse=0.009680 time=14.97s
+Epoch 0060 | loss=0.010862 data=0.002029 diff=0.294413 val_mse=0.009312 time=16.69s
+Epoch 0070 | loss=0.010694 data=0.001900 diff=0.293129 val_mse=0.009371 time=14.88s
+Epoch 0080 | loss=0.010401 data=0.001620 diff=0.292699 val_mse=0.009379 time=16.08s
+Epoch 0090 | loss=0.010142 data=0.001263 diff=0.295966 val_mse=0.008759 time=15.03s
+Epoch 0100 | loss=0.010202 data=0.001353 diff=0.294958 val_mse=0.008675 time=15.03s
+=== Exp D: Multistep prior, weight 0.05 ===
+/home/shoumik/simplicit_diffusion
+/home/shoumik/simplicit_diffusion/src
+Dataset: 3200 samples, 50 batches/epoch (batch_size=64)
+Epoch 0001 | loss=0.187306 data=0.165631 diff=0.433494 val_mse=0.086408 time=16.29s
+Epoch 0010 | loss=0.028690 data=0.014275 diff=0.288288 val_mse=0.019471 time=14.93s
+Epoch 0020 | loss=0.021431 data=0.007017 diff=0.288283 val_mse=0.013288 time=14.88s
+Epoch 0030 | loss=0.019233 data=0.004689 diff=0.290870 val_mse=0.011032 time=15.13s
+Epoch 0040 | loss=0.017695 data=0.003190 diff=0.290106 val_mse=0.010318 time=15.78s
+Epoch 0050 | loss=0.017310 data=0.002708 diff=0.292047 val_mse=0.009833 time=15.04s
+Epoch 0060 | loss=0.016671 data=0.002138 diff=0.290671 val_mse=0.009712 time=14.80s
+Epoch 0070 | loss=0.016628 data=0.002182 diff=0.288930 val_mse=0.009462 time=14.83s
+Epoch 0080 | loss=0.016128 data=0.001708 diff=0.288396 val_mse=0.009318 time=15.04s
+Epoch 0090 | loss=0.016284 data=0.001695 diff=0.291776 val_mse=0.008925 time=14.85s
+Epoch 0100 | loss=0.016218 data=0.001661 diff=0.291136 val_mse=0.008918 time=16.66s
+Done. TensorBoard: tensorboard --logdir outputs/prior_study --port 6006
